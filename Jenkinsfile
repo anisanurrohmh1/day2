@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'auth-service'
+        // Windows: PATH biasanya sudah OK, tidak perlu diset manual
+        // Jika perlu, gunakan format Windows: PATH = "C:\\Tools;${env.PATH}"
     }
 
     tools {
