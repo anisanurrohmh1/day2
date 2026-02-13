@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/v3/api-docs/**",
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/v3/api-docs/**","/payment",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "LOAN_OFFICER", "APPROVER")
