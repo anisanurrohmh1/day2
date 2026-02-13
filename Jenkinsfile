@@ -86,7 +86,7 @@ pipeline {
     post {
         success {
             echo 'Pipeline completed successfully!'
-            echo "Image: ${DOCKER_IMAGE}:${BUILD_TAG}"
+
         }
         failure {
             echo 'Pipeline failed! Check logs above.'
