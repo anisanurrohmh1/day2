@@ -11,20 +11,19 @@ pipeline {
     }
 
     stages {
-       stage('Checkout') {
-           steps {
-               checkout scm
-               script {
-                   env.GIT_COMMIT_SHORT = bat(
-                       script: 'git rev-parse --short HEAD',
-                       returnStdout: true
-                   ).trim()
-
-                   env.BUILD_TAG = "local-${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
-               }
-               echo "Building: ${env.BUILD_TAG}"
-           }
-       }
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_SHORT = bat(
+                        script: '@git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    env.BUILD_TAG = "local-${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+                }
+                echo "Building: ${env.BUILD_TAG}"
+            }
+        }
 
         stage('Build') {
             steps {
@@ -40,7 +39,7 @@ pipeline {
             }
             post {
                 always {
-                    junit '**/target/surefire-reports/*.xml'
+                    junit '*/target/surefire-reports/.xml'
                     jacoco(
                         execPattern: '**/target/jacoco.exec',
                         classPattern: '**/target/classes',
@@ -57,7 +56,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                    archiveArtifacts artifacts: '*/target/.jar', fingerprint: true
                 }
             }
         }
@@ -66,33 +65,34 @@ pipeline {
             steps {
                 script {
                     bat 'docker version'
-                    bat "docker build -t %DOCKER_IMAGE%:%BUILD_TAG% ."
-                    bat "docker tag %DOCKER_IMAGE%:%BUILD_TAG% %DOCKER_IMAGE%:latest"
+                    bat "docker build -t ${DOCKER_IMAGE}:${BUILD_TAG} ."
+                    bat "docker tag ${DOCKER_IMAGE}:${BUILD_TAG} ${DOCKER_IMAGE}:latest"
 
                     echo "Docker image built successfully"
                 }
             }
         }
 
-        stage('Test Docker Image') {
-            steps {
-                script {
-                    bat "docker run --rm --entrypoint java %DOCKER_IMAGE%:%BUILD_TAG% -version"
-                }
-            }
-        }
+       stage('Test Docker Image') {
+           steps {
+               script {
+                   bat "docker run --rm --entrypoint java ${DOCKER_IMAGE}:${BUILD_TAG} -version"
+               }
+           }
+       }
     }
 
     post {
         success {
             echo 'Pipeline completed successfully!'
-
+            echo "Image: ${DOCKER_IMAGE}:${BUILD_TAG}"
         }
         failure {
             echo 'Pipeline failed! Check logs above.'
         }
         always {
             echo 'Cleaning workspace...'
+
         }
     }
 }
