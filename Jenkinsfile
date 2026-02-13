@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'auth-service'
-        PATH = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
     }
 
     tools {
@@ -16,10 +15,11 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    env.GIT_COMMIT_SHORT = sh(
-                        script: "git rev-parse --short HEAD",
+                    env.GIT_COMMIT_SHORT = bat(
+                        script: 'git rev-parse --short HEAD',
                         returnStdout: true
                     ).trim()
+
                     env.BUILD_TAG = "local-${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
                 }
                 echo "Building: ${env.BUILD_TAG}"
@@ -29,14 +29,14 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Compiling application...'
-                sh 'mvn clean compile -B'
+                bat 'mvn clean compile -B'
             }
         }
 
         stage('Unit Tests') {
             steps {
                 echo 'Running unit tests...'
-                sh 'mvn test -B'
+                bat 'mvn test -B'
             }
             post {
                 always {
@@ -53,7 +53,7 @@ pipeline {
         stage('Package') {
             steps {
                 echo 'Packaging application...'
-                sh 'mvn package -DskipTests -B'
+                bat 'mvn package -DskipTests -B'
             }
             post {
                 success {
@@ -65,27 +65,22 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker version'
-                    sh "docker build -t ${DOCKER_IMAGE}:${BUILD_TAG} ."
-                    sh "docker tag ${DOCKER_IMAGE}:${BUILD_TAG} ${DOCKER_IMAGE}:latest"
+                    bat 'docker version'
+                    bat "docker build -t %DOCKER_IMAGE%:%BUILD_TAG% ."
+                    bat "docker tag %DOCKER_IMAGE%:%BUILD_TAG% %DOCKER_IMAGE%:latest"
 
                     echo "Docker image built successfully"
                 }
             }
         }
 
-       stage('Test Docker Image') {
-           steps {
-               script {
-                   sh """
-                   docker run --rm \
-                     --entrypoint java \
-                     ${DOCKER_IMAGE}:${BUILD_TAG} \
-                     -version
-                   """
-               }
-           }
-       }
+        stage('Test Docker Image') {
+            steps {
+                script {
+                    bat "docker run --rm --entrypoint java %DOCKER_IMAGE%:%BUILD_TAG% -version"
+                }
+            }
+        }
     }
 
     post {
@@ -98,7 +93,6 @@ pipeline {
         }
         always {
             echo 'Cleaning workspace...'
-
         }
     }
 }
