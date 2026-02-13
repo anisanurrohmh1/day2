@@ -11,20 +11,20 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-                script {
-                    env.GIT_COMMIT_SHORT = bat(
-                        script: 'git rev-parse --short HEAD',
-                        returnStdout: true
-                    ).trim()
+       stage('Checkout') {
+           steps {
+               checkout scm
+               script {
+                   env.GIT_COMMIT_SHORT = bat(
+                       script: 'git rev-parse --short HEAD',
+                       returnStdout: true
+                   ).trim()
 
-                    env.BUILD_TAG = "local-${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
-                }
-                echo "Building: ${env.BUILD_TAG}"
-            }
-        }
+                   env.BUILD_TAG = "local-${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+               }
+               echo "Building: ${env.BUILD_TAG}"
+           }
+       }
 
         stage('Build') {
             steps {
